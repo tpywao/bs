@@ -9,7 +9,8 @@ class Book(models.Model):
     stock = models.IntegerField('在庫数')
     title = models.CharField('タイトル', max_length=50, blank=True)
     author = models.CharField('著者', max_length=20, blank=True)
-    published_date = models.DateField('発行日', blank=True)
+    published_date = models.DateField('発行日', null=True, blank=True)
+    thumbnail_url = models.CharField('サムネイルurl', max_length=200, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.title or not self.author or self.published_date:
@@ -22,7 +23,11 @@ class Book(models.Model):
                 self.author = book_info['authors'][0]
             if not self.published_date:
                 self.published_date = book_info['publishedDate']
+            self.thumbnail_url = book_info['imageLinks']['thumbnail']
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
 
     class Meta:
         verbose_name = verbose_name_plural = '書籍'
