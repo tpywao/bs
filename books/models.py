@@ -4,7 +4,7 @@ from django.db import models
 
 
 class Book(models.Model):
-    url_base = 'https://www.googleapis.com/books/v1/volumes?q=isbn:'
+    api_base = 'https://www.googleapis.com/books/v1/volumes?q=isbn:'
     isbn = models.CharField(max_length=13, unique=True)
     stock = models.IntegerField('在庫数')
     title = models.CharField('タイトル', max_length=50, blank=True)
@@ -13,8 +13,8 @@ class Book(models.Model):
     thumbnail_url = models.CharField('サムネイルurl', max_length=200, blank=True)
 
     def save(self, *args, **kwargs):
-        if not self.title or not self.author or self.published_date:
-            response = urlopen(self.url_base + self.isbn)
+        if not self.title or not self.author or not self.published_date:
+            response = urlopen(self.api_base + self.isbn)
             s = loads(response.read().decode('utf-8'))
             book_info = s['items'][0]['volumeInfo']
             if not self.title:
@@ -23,6 +23,8 @@ class Book(models.Model):
                 self.author = book_info['authors'][0]
             if not self.published_date:
                 self.published_date = book_info['publishedDate']
+                if len(self.published_date) <= 7:
+                    self.published_date += '-01'
             self.thumbnail_url = book_info['imageLinks']['thumbnail']
         super().save(*args, **kwargs)
 
